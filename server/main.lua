@@ -28,8 +28,28 @@ AddEventHandler("gta:pedSync:findPedNetId", function(shop_data)
   end
 end)
 
+--> Reworked to be able to target only the players near instead of everyone :
 RegisterNetEvent("gta:pedSync:playAnim", function(pedNetId, dict, anim)
-  TriggerClientEvent("gta:pedSync:playAnimAll", -1, pedNetId, dict, anim)
+  local src = source
+  local players = GetPlayers()
+  local ped = NetworkGetEntityFromNetworkId(pedNetId)
+
+  if not DoesEntityExist(ped) then
+    print("⚠️ No PED on server")
+    return
+  end
+
+  local pedCoords = GetEntityCoords(ped)
+  local radius = 10.0
+
+  for _, playerId in pairs(players) do
+    local playerPed = GetPlayerPed(playerId)
+    local playerCoords = GetEntityCoords(playerPed)
+
+    if #(playerCoords - pedCoords) <= radius then
+      TriggerClientEvent("gta:pedSync:playAnimAll", playerId, pedNetId, dict, anim)
+    end
+  end
 end)
 
 RegisterServerEvent("gta:pedSync:registerCreatedPed")
